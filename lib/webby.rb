@@ -32,7 +32,7 @@ module Webby
       :content_dir   => 'content',
       :layout_dir    => 'layouts',
       :template_dir  => 'templates',
-      :exclude       => %w(tmp$ bak$ ~$ CVS \.svn),
+      :exclude       => %w(tmp$ bak$ ~$ CVS \.svn \.git \.DS_Store),
       :page_defaults => {
         'layout'     => 'default'
       },
@@ -53,7 +53,7 @@ module Webby
       :rsync_args => %w(-av),
 
       # Global options for HAML and SASS
-      :haml_options => {},
+      :haml_options => {:attr_wrapper => '"'},
       :sass_options => {},
 
       # Options passed to the 'tidy' program when the tidy filter is used
