@@ -121,12 +121,16 @@ class Resource
     dirty = @mtime > ::File.mtime(destination)
     return dirty if dirty
 
-    # check to see if the layout is dirty, and if it is then we
-    # are dirty, too
+    # check to see if the layout is ignored in the loaded file, otherwise check if it's dirty, 
+    # and if it is then we are dirty, too
     if _meta_data.has_key? 'layout'
-      lyt = ::Webby::Resources.find_layout(_meta_data['layout'])
-      unless lyt.nil?
-        return true if lyt.dirty?
+      if (_meta_data['layout'] != false)
+        lyt = ::Webby::Resources.find_layout(_meta_data['layout'])
+        unless lyt.nil?
+          return true if lyt.dirty?
+        end
+      else
+        logger.info "the file [#{@path}] should be rendered without being wrapped in the layout"
       end
     end
 
