@@ -19,6 +19,7 @@ class Main
   def initialize
     @stdout = $stdout
     @cmd_line_options = {}
+    @command = %w[rake]
   end
 
   # Runs the main webby application. The command line arguments are passed
@@ -30,7 +31,7 @@ class Main
 
     parse args
     init args
-    rake
+    self.__send__(*@command)
   end
 
   # Parse the command line _args_ for options and commands to invoke.
@@ -46,6 +47,10 @@ class Main
       next unless desired_opts.include?(options.first)
       opts.on(*options)
     end
+    opts.on('-o', '--options [PATTERN]',
+            'Show configuration options (matching optional pattern), then exit.') { |value|
+      @command = [:show_options, value]
+    }
 
     opts.separator ''
     opts.separator 'autobuild options:'
@@ -115,6 +120,32 @@ class Main
     app.top_level
   end
 
+  # Print the available configuration options.
+  #
+  def show_options( attribute = nil )
+    app.init 'webby'
+    app.load_rakefile
+
+    desc = <<-__
+      The following options can be used to control Webby functionality.
+      Options are configured in the 'Sitefile'. A few examples are shown below:
+      |
+      |   SITE.create_mode = 'directory'
+      |   SITE.base        = 'http://www.example.com'
+      |   SITE.uv.theme    = 'twilight'
+      |
+      =======< OPTIONS >=======
+      |
+    __
+    
+    @stdout.puts desc.gutter!
+    help = Loquacious.help_for(
+      :webby, :io => @stdout, :colorize => ENV.key?('TERM')
+    )
+    help.show attribute, :values => true
+    @stdout.puts
+  end
+
   # Return the Rake application object.
   #
   def app
@@ -155,7 +186,10 @@ class Main
   end
 
   def capture_command_line_args(args)
-    args = OpenStruct.new(:raw => args)
+    args = OpenStruct.new(
+      :raw  => args,
+      :rake => ARGV.dup
+    )
 
     if args.raw.size > 1
       ::Webby.deprecated "multiple arguments used for page title",
@@ -191,65 +225,5 @@ class Main
 
 end  # class Main
 end  # module Webby::Apps
-
-# :stopdoc:
-# Monkey patches so that rake displays the correct application name in the
-# help messages.
-#
-class Rake::Application
-  def display_prerequisites
-    tasks.each do |t|
-      puts "#{name} #{t.name}"
-      t.prerequisites.each { |pre| puts "    #{pre}" }
-    end
-  end
-
-  def display_tasks_and_comments
-    displayable_tasks = tasks.select { |t|
-      t.comment && t.name =~ options.show_task_pattern
-    }
-    if options.full_description
-      displayable_tasks.each do |t|
-        puts "#{name} #{t.name_with_args}"
-        t.full_comment.split("\n").each do |line|
-          puts "    #{line}"
-        end
-        puts
-      end
-    else
-      width = displayable_tasks.collect { |t| t.name_with_args.length }.max || 10
-      max_column = truncate_output? ? terminal_width - name.size - width - 7 : nil
-      displayable_tasks.each do |t|
-        printf "#{name} %-#{width}s  # %s\n",
-          t.name_with_args, max_column ? truncate(t.comment, max_column) : t.comment
-      end
-    end
-  end
-
-  # Provide standard execption handling for the given block.
-  def standard_exception_handling
-    begin
-      yield
-    rescue SystemExit => ex
-      # Exit silently with current status
-      exit(ex.status)
-    rescue SystemExit, OptionParser::InvalidOption => ex
-      # Exit silently
-      exit(1)
-    rescue Exception => ex
-      # Exit with error message
-      $stderr.puts "#{name} aborted!"
-      $stderr.puts ex.message
-      if options.trace
-        $stderr.puts ex.backtrace.join("\n")
-      else
-        $stderr.puts ex.backtrace.find {|str| str =~ /#{@rakefile}/ } || ""
-        $stderr.puts "(See full trace by running task with --trace)"
-      end
-      exit(1)
-    end
-  end
-end  # class Rake::Application
-# :startdoc:
 
 # EOF

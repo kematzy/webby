@@ -190,7 +190,7 @@ class Generator
     src = template / file
     dst = site / file
 
-    if test(?e, dst) 
+    if test(?e, dst)
       if identical?(src, dst)
         identical(dst)
         return
@@ -229,7 +229,7 @@ class Generator
   def site_files
     exclude = %r/tmp$|bak$|~$|CVS|\.svn/o
 
-    rgxp = %r/\A#{template}\/?/o
+    rgxp = %r/\A#{template}\/?/
     paths = Hash.new {|h,k| h[k] = []}
 
     Find.find(template) do |p|

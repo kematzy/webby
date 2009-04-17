@@ -1,4 +1,3 @@
-
 namespace :blog do
 
   # iterate over all the files in the "templates/blog" folder and create a
@@ -20,7 +19,7 @@ namespace :blog do
       page = File.join(dir, File.basename(page))
       page = Webby::Builder.create(page, :from => template,
                  :locals => {:title => title, :directory => dir})
-      exec(::Webby.editor, page) unless ::Webby.editor.nil?
+      Webby.exec_editor(page)
     end
   end  # each
 

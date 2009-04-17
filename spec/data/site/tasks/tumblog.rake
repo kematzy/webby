@@ -1,3 +1,7 @@
+Loquacious.configuration_for(:webby) {
+  desc "The default directory where new tumblog posts will be created."
+  tumblog_dir 'blog'
+}
 
 namespace :tumblog do
 
@@ -21,7 +25,7 @@ namespace :tumblog do
       page = File.join(dir, File.basename(page))
       page = Webby::Builder.create(page, :from => template,
                  :locals => {:title => title, :directory => dir})
-      exec(::Webby.editor, page) unless ::Webby.editor.nil?
+      Webby.exec_editor(page)
     end
   end  # each
 

@@ -3,8 +3,11 @@
 unless defined? WEBBY_SPEC_HELPER
 WEBBY_SPEC_HELPER = true
 
+<<<<<<< HEAD:spec/spec_helper.rb
 require 'rubygems'
 require 'spec'
+=======
+>>>>>>> bcae2c47ba9860296a70440399f42dfe0daa5e88:spec/spec_helper.rb
 require 'fileutils'
 require 'stringio'
 
@@ -12,6 +15,7 @@ begin
   require 'fake_web'
   $test_externals = true
 rescue LoadError
+  retry if require 'rubygems'
   $test_externals = false
 end
 

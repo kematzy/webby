@@ -36,12 +36,15 @@ class Renderer
     renderer = self.new(page)
 
     loop {
-      FileUtils.mkdir_p ::File.dirname(page.destination)
+      dest = page.destination
+      FileUtils.mkdir_p ::File.dirname(dest)
       journal.create_or_update(page)
 
-      ::File.open(page.destination, 'w') do |fd|
-        fd.write(renderer._layout_page)
+      text = renderer._layout_page
+      unless text.nil?
+        ::File.open(dest, 'w') {|fd| fd.write(text)}
       end
+
       break unless renderer._next_page
     }
   end
@@ -234,10 +237,10 @@ class Renderer
   rescue ::Webby::Error => err
     logger.error "while rendering page '#{@page.path}'"
     logger.error err.message
-  rescue => err
+    return nil
+  rescue Exception => err
     logger.error "while rendering page '#{@page.path}'"
     logger.fatal err
-    exit 1
   ensure
     @content = nil
     @@stack.clear
@@ -336,7 +339,7 @@ class Renderer
   # the partial. If a full path is given, then the partial is searched for
   # in that directory.
   #
-  # Raies a Webby::Error if the partial could not be found.
+  # Raises a Webby::Error if the partial could not be found.
   #
   def _find_partial( part )
     case part

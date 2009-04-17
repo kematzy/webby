@@ -1,6 +1,30 @@
 if try_require 'coderay'
 require 'enumerator'
 
+Loquacious.configuration_for(:webby) {
+  desc <<-__
+    Options for CodeRay syntax highlighting. See the CodeRay home page
+    (http://coderay.rubychan.de/) for more information about the available
+    options.
+  __
+  coderay {
+    desc 'The language being highlighted (given as a symbol).'
+    lang :ruby
+
+    desc 'Include line numbers in :table, :inline, :list or nil (no line numbers).'
+    line_numbers nil
+
+    desc 'Where to start line number counting.'
+    line_number_start 1
+
+    desc 'Make every N-th number appear bold.'
+    bold_every 10
+
+    desc 'Tabs will be converted into this number of space characters.'
+    tab_width 8
+  }
+}
+
 module Webby::Helpers
 module CodeRayHelper
 
@@ -35,7 +59,7 @@ module CodeRayHelper
     return if text.empty?
 
     defaults = ::Webby.site.coderay
-    lang = opts.getopt(:lang, defaults[:lang]).to_sym
+    lang = opts.getopt(:lang, defaults.lang).to_sym
 
     cr_opts = {}
     %w(line_numbers       to_sym
@@ -49,9 +73,9 @@ module CodeRayHelper
     end
 
     #cr.swap(CodeRay.scan(text, lang).html(opts).div)
-    out = '<div class="CodeRay"><pre>'
+    out = %Q{<div class="CodeRay">\n<pre>}
     out << ::CodeRay.scan(text, lang).html(cr_opts)
-    out << '</pre></div>'
+    out << %Q{</pre>\n</div>}
 
     # put some guards around the output (specifically for textile)
     out = _guard(out)
